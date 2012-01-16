@@ -17,6 +17,10 @@ initialCommands in console := """
 
 seq(lsSettings :_*)
 
+// (LsKeys.tags in LsKeys.lsync) := Seq("futures", "async-awesome")
+(externalResolvers in LsKeys.lsync) := Seq("IESL Repo" at "http://iesl.cs.umass.edu:8081/nexus/content/repositories/snapshots")
+// (description in LsKeys.lsync) := "One futures library to rule them all."
+
 
 // set Ivy logging to be at the highest level
 ivyLoggingLevel := UpdateLogging.Full
