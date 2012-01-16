@@ -1,4 +1,3 @@
-
 {
  "organization":"cc.acs",
  "name":"boxter-brown",
@@ -17,3 +16,4 @@
  "scalas": ["2.9.1"],
  "sbt": false
 }
+
