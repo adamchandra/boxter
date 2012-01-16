@@ -3,11 +3,7 @@
  "name":"boxter-brown",
  "version":"0.1-SNAPSHOT",
  "description":"a port of the haskell boxes library",
- "site":"",
- "tags":[box, boxes, boxter],
- "docs":"",
- "licenses": [],
- "resolvers": ["http://scala-tools.org/repo-releases", "http://iesl.cs.umass.edu:8081/nexus/content/repositories/snapshots/"],
+ "resolvers": ["http://iesl.cs.umass.edu:8081/nexus/content/repositories/snapshots/"],
  "dependencies": [{
    "organization":"org.scalaz",
    "name": "scalaz-core",
