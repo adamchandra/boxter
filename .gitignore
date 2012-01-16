@@ -1,0 +1,97 @@
+# choose syntax
+syntax: glob
+#  syntax: regexp
+
+# ignore maven
+dist
+target
+build.log
+release.properties
+pom.xml.*
+
+# ignore eclipse
+.settings
+.project
+.classpath
+.manager
+.externalToolBuilders
+
+# ignore sbt
+target
+lib_managed
+project/boot
+project/build/target
+project/plugins/target
+project/plugins/lib_managed
+project/plugins/src_managed
+.lib
+
+# ignore sbt in subprojects
+**/target
+**/lib_managed
+**/project/boot
+**/project/build/target
+**/project/plugins/target
+**/project/plugins/lib_managed
+**/project/plugins/src_managed
+
+# ignore ctags/etags
+TAGS
+
+# ignore ensime 
+.ensime
+
+
+*.ser
+*.class
+*~
+*.bak
+*.off
+*.old
+.DS_Store
+
+# other scm
+.svn
+.CVS
+.hg*
+
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea
+
+
+# Maven
+target
+
+# Mac
+.DS_Store
+
+# Eclipse
+.classpath
+.launch
+.metadata
+.project
+.scala_dependencies
+.settings
+
+*~
+*.pyc
+*CVS
+*.so
+*.d
+*.class*
+.cvsignore*
+.svn
+.project
+.#*
+.git
+*#
+*.swp
+hs_err_*
+
+# OS X stuff
+*Thumbs.db*
+*.DS_Store
