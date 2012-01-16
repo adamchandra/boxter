@@ -15,15 +15,10 @@ initialCommands in console := """
   println("Boxes imported...")
 """
 
-seq(lsSettings :_*)
-
-// (LsKeys.tags in LsKeys.lsync) := Seq("futures", "async-awesome")
-(externalResolvers in LsKeys.lsync) := Seq("IESL Repo" at "http://iesl.cs.umass.edu:8081/nexus/content/repositories/snapshots")
-// (description in LsKeys.lsync) := "One futures library to rule them all."
-
 
 // set Ivy logging to be at the highest level
 ivyLoggingLevel := UpdateLogging.Full
+
 
 // set the prompt (for this build) to include the project id.
 shellPrompt in ThisBuild := { state => Project.extract(state).currentRef.project + "> " }
@@ -58,9 +53,10 @@ parallelExecution := true
 //  this applies to both test:compile and compile and is Info by default
 // logLevel in compile := Level.Warn
 
+
 // only show warnings and errors on the screen for all tasks (the default is Info)
 //  individual tasks can then be more verbose using the previous setting
-logLevel := Level.Warn
+logLevel := Level.Info
 
 // only store messages at info and above (the default is Debug)
 //   this is the logging level for replaying logging with 'last'
@@ -79,3 +75,8 @@ publishTo := Some("snapshots" at "http://iesl.cs.umass.edu:8081/nexus/content/re
 // Specify a file containing credentials for publishing. The format is:
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
+seq(lsSettings :_*)
+
+// (LsKeys.tags in LsKeys.lsync) := Seq("futures", "async-awesome")
+// (description in LsKeys.lsync) := "One futures library to rule them all."
+// (externalResolvers in LsKeys.lsync) += "IESL Repo" at "http://iesl.cs.umass.edu:8081/nexus/content/repositories/snapshots"
