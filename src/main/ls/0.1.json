@@ -5,7 +5,7 @@
  "version":"0.1-SNAPSHOT",
  "description":"boxter-brown",
  "site":"",
- "tags":[],
+ "tags":[box, boxes, boxter],
  "docs":"",
  "licenses": [],
  "resolvers": ["http://iesl.cs.umass.edu:8081/nexus/content/repositories/snapshots"],
