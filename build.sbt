@@ -12,7 +12,8 @@ initialCommands in console := """
   import acs.boxes.Boxes._
   import scalaz._
   import Scalaz._
-  println("Boxes imported...")
+  val welcome = (text("Boxes imported...") % text("  ---") %| text("Commence hacking..")) +| text("==>")
+  printBox(welcome)
 """
 
 

@@ -5,6 +5,36 @@ Boxes: Now, in Scala.
 A port of the boxes library, written by Brent Yorgey under the attached copyright[1].
 
 
+- Preliminary notes on translation of haskell to Scala: 
+
+  - Record syntax approximation using case classes + lenses to provide accessor functions
+    (Why not just use lifted methods, e.g. (_.getField)? Scala type inferencer woes, for one...)
+    
+  - When to preserve ordering of function composition in haskell (f . g . h), vs.
+    scala's reversed ordering (f andThen g andThen h). Reversal helps scala's inference, 
+    and can be as clear as regular composition. Problems arise when the two styles are freely
+    mixed (especially in a single expression), such the order of function application is not
+    strictly left to right or right to left.
+    
+    
+
+~~~~ haskell
+  data Para = Para { paraWidth   :: Int
+                   , paraContent :: ParaContent
+                   }
+  data ParaContent = Block { fullLines :: [Line]
+                           , lastLine  :: Line
+                           }
+~~~~~  
+
+~~~~ scala
+  sealed trait ParaContent
+
+  case class Para(paraWidth : Int, paraContent : ParaContent)
+  val paraWidth: Lens[Para, Int] = Lens(_.paraWidth, (obj, v) => obj copy (paraWidth = v))
+  val paraContent: Lens[Para, ParaContent] = Lens(_.paraContent, (obj, v) => obj copy (paraContent = v))
+~~~~~  
+
 
 
 
