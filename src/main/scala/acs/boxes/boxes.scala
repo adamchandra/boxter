@@ -172,21 +172,12 @@ object Boxes {
 
 
   // Flow the given text into the given width.
-  def flow2 : Int => String => List[String] = 
-    n => t => {
-      val wrds = words(t) ∘ mkWord
-      val para = wrds.foldl (emptyPara(n)) (addWordP)
-      para |> getLines |> (_.map(_.take(n)))
-    }
-
   def flow : Int => String => List[String] = 
     n => t => {
       val wrds = words(t) ∘ mkWord
       val para = wrds.foldl (emptyPara(n)) { addWordP }
       para |> getLines |> (_.map(_.take(n)))
     }
-
-
 
   sealed trait ParaContent
 

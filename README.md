@@ -4,6 +4,13 @@ Boxes: Now, in Scala.
 
 A port of the boxes library, written by Brent Yorgey under the attached copyright[1].
 
+- Todo
+  - Create utility functions to ease the process of using blocks of text with the boxes
+    formatting library, i.e., convert a newline sep string into a seq[string] without '\n's, 
+  
+  - Integrate colorizing lib
+
+  - Create 'border' functions
 
 - Preliminary notes on translation of haskell to Scala: 
 
