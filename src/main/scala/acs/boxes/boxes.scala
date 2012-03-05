@@ -51,7 +51,7 @@ object Boxes {
   }
 
   // Convenient ability to use bare string literals as boxes.
-  implicit def str2box(s:String): Box = text(s)
+  // implicit def str2box(s:String): Box = text(s)
 
   // Data type for specifying the alignment of boxes.
   sealed trait Alignment
@@ -80,6 +80,7 @@ object Boxes {
   case class Row(bs:List[Box]) extends Content
   case class Col(bs:List[Box]) extends Content
   case class SubBox(a1: Alignment, a2: Alignment, b:Box) extends Content
+  case class AnnotatedBox(props:Map[String, String], b:Box) extends Content
 
 
   // The null box, which has no content and no size.  
