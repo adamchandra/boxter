@@ -39,7 +39,8 @@ project/plugins/src_managed
 TAGS
 
 # ignore ensime 
-.ensime
+
+.ensime*
 
 
 *.ser

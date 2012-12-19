@@ -1,5 +1,6 @@
 package acs.boxes
 
+
 object Commons {
   def head[A](a:Seq[A]) = a.head
   def head[A](a:List[A]) = a.head
