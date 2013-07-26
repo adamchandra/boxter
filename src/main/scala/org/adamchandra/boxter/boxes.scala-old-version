@@ -1,4 +1,4 @@
-package acs.boxes
+package org.adamchandra.boxter
 
 
 object Commons {
