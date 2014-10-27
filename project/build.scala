@@ -1,7 +1,5 @@
 import sbt._
 import Keys._
-//import edu.umass.cs.iesl.sbtbase.Dependencies
-//import edu.umass.cs.iesl.sbtbase.IeslProject._
 
 object ieslConfig {
 
@@ -20,24 +18,6 @@ object ieslConfig {
   }
 
   var creds = Iesl.creds
-  
-  //val root =
-  //  Project("openreview-model", file("."))
-  //    .settings(Iesl.scalaSettings(Iesl.DebugVars):_*)
-  //    .settings(publishTo := publishToIesl(version.value, Iesl.Public))
-  //    .settings(Iesl.creds)
-  //    .settings(releaseSettings:_*)
-  //    .settings(scalaVersion := "2.11.2")
-  //    .settings(
-  //    organization := org,
-  //      Iesl.setConflictStrategy(Iesl.ConflictStrict),
-  //      resolvers ++= (
-  //        IeslConfig.IESLReleaseRepos ++ IeslConfig.IESLSnapshotRepos ++ Seq(
-  //          "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
-  //        )),
-  //      scalaVersion := scalaV,
-  //      libraryDependencies ++= deps
-  //  )
 }
 
 object releaseConfig {
