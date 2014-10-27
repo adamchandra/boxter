@@ -1,1 +1,1 @@
-bin/sbt-12.4/bin/sbt
+build/sbt-0.13.5/bin/sbt

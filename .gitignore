@@ -2,6 +2,8 @@
 syntax: glob
 #  syntax: regexp
 
+.cache
+
 # ignore maven
 dist
 target
@@ -96,3 +98,4 @@ hs_err_*
 # OS X stuff
 *Thumbs.db*
 *.DS_Store
+/.target

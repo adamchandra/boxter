@@ -56,7 +56,17 @@ object Boxes {
   }
 
   // Convenient ability to use bare string literals as boxes.
-  implicit def str2box(s:String): Box = tbox(s)
+  // implicit def str2box(s:String): Box = tbox(s)
+  def indent(n:Int=4)(b:Box): Box = {
+    emptyBox(1)(n) + b
+  }
+
+  implicit def stringToBox(s: String): Box = {
+    linesToBox(scala.io.Source.fromString(s).getLines.toList)
+  }
+
+  def mstringToList(s: String): List[String] = 
+    scala.io.Source.fromString(s).getLines.toList
   
   def unrenderString(s:String): Box = 
     s.split("\n").toList |> linesToBox
@@ -350,10 +360,6 @@ object Boxes {
     println("========")
   }
 
-  def sample1() = {
-
-  }
-
 
   /// val hline = (c:String) => (n:Int) => (hjoin()( (takePadAlign(left, text(c), n)(List())):_* ))
   // val vline = (c:String) => (n:Int) => (vjoin()( (takePadAlign(center1, text(c), n)(List())):_* ))
@@ -427,18 +433,146 @@ object Boxes {
   }
 
 
+  //trait BoxChars {
+  //  def hline: Char
+  //  def vline: Char
+  //  def ulCorner: Char
+  //  def urCorner: Char
+  //  def llCorner: Char
+  //  def lrCorner: Char
+  //  def lbracket: Char
+  //  def rbracket: Char
+  //}
 
 
-  trait BoxChars {
-    def hline: Char
-    def vline: Char
-    def ulCorner: Char
-    def urCorner: Char
-    def llCorner: Char
-    def lrCorner: Char
-    def lbracket: Char
-    def rbracket: Char
+  //------------------------------------------------------------------------------
+  //  Paragraph flowing  ---------------------------------------------------------
+  //------------------------------------------------------------------------------
+
+  // @para algn w t@ is a box of width @w@, containing text @t@,
+  //   aligned according to @algn@, flowed to fit within the given
+  //   width.
+  def para: Alignment => Int => String => Box =
+    a => n => t =>
+  flow(n)(t) |> (ss => mkParaBox(a, ss.length, ss))
+
+
+  // @columns w h t@ is a list of boxes, each of width @w@ and height
+  //   at most @h@, containing text @t@ flowed into as many columns as
+  //   necessary.
+  def columns : (Alignment, Int, Int, String) => List[Box] =
+    (a, w, h, t) =>  flow(w)(t) ∘ (_.grouped(h).toList) ∘ (mkParaBox(a, h, _))
+
+
+
+  // makes a box of height n with the text ss
+  //   aligned according to a
+  def mkParaBox(a:Alignment, n:Int, ss:List[String]): Box =
+    alignVert(top)(n)(vcat(a)(ss.map(stringToBox(_))))
+  
+  
+  def words(s:String): List[String] = {
+    val wordSplit = """\s+""".r
+    (for {
+      l <- scala.io.Source.fromString(s).getLines
+      w <- wordSplit.split(l)
+    } yield {
+      w.trim
+    }).toList
+      // (s.split(" ") map (_.trim)).toList
   }
+
+  def unwords(ws:List[String]) = ws.mkString(" ")
+  
+  // Flow the given text into the given width.
+  def flow : Int => String => List[String] =
+    n => t => {
+      val wrds = words(t) ∘ mkWord
+      val para = wrds.foldl (emptyPara(n)) { addWordP }
+      para |> getLines |> (_.map(_.take(n)))
+    }
+  
+  sealed trait ParaContent
+
+  case class Para(paraWidth : Int, paraContent : ParaContent)
+
+
+  val paraWidth: Lens[Para, Int] = lensu((obj, v) => obj copy (paraWidth = v), _.paraWidth)
+  val paraContent: Lens[Para, ParaContent] = lensu((obj, v) => obj copy (paraContent = v), _.paraContent)
+  
+  case class Block(fullLines : List[Line], lastLine  : Line) extends ParaContent
+  val fullLines: Lens[Block, List[Line]] = lensu((obj, v) => obj copy (fullLines = v), _.fullLines)
+  val lastLine: Lens[Block, Line] = lensu((obj, v) => obj copy (lastLine = v), _.lastLine)
+  
+  def emptyPara(pw: Int) : Para =
+    Para(pw, (Block(Nil, (Line(0, Nil)))))
+
+  def getLines : Para => List[String] =
+    p => {
+      def process =  (l:List[Line]) => l.reverse ∘ Line.getWords ∘ (_.map(Word.getWord)) ∘ (_.reverse) ∘ unwords
+
+      p match {
+        case Para(_, (Block(ls, l))) =>
+          if (l.len == 0) process(ls)
+          else            process(l::ls)
+      }
+    }
+
+  case class Line(len: Int, words: List[Word])
+  object Line {
+    val lenL: Lens[Line, Int] = lensu((obj, v) => obj copy (len = v), _.len)
+    val wordsL: Lens[Line, List[Word]] = lensu((obj, v) => obj copy (words = v), _.words)
+    val getLen = lenL.get(_)
+    val getWords = wordsL.get(_)
+  }
+
+  //
+  def mkLine : List[Word] => Line =
+    ws => Line((ws ∘ Word.getLen).sum + ws.length - 1, ws)
+
+  def startLine : Word => Line =
+    w => mkLine(w :: Nil)
+
+
+  case class Word(len:Int, word:String)
+  object Word {
+    val lenL: Lens[Word, Int] = lensu((obj, v) => obj copy (len = v), _.len)
+    val wordL: Lens[Word, String] = lensu((obj, v) => obj copy (word = v), _.word)
+    val getLen = lenL.get(_)
+    val getWord = wordL.get(_)
+  }
+
+  def mkWord : String => Word =
+    w => Word(w.length, w)
+
+  def addWordP : Para => Word => Para =
+    p => w => {
+      p match {
+        case Para(pw, (Block(fl,l))) =>
+          if (wordFits(pw,w,l))
+            Para(pw, Block(fl, addWordL(w, l)))
+          else
+            Para(pw, Block((l::fl), startLine(w)))
+      }
+    }
+
+
+  def addWordL : (Word, Line) => Line =
+    (w, l) => l match {
+      case Line(len, ws) => Line((len + w.len + 1), (w::ws))
+    }
+
+
+  def wordFits : (Int, Word, Line) => Boolean =
+    (pw, w, l) =>
+  l.len == 0 || l.len + w.len + 1 <= pw
+
+}
+
+
+object App extends App {
+  import Boxes._
+
 
   def sampleText1 = vjoin(center2)(
     tbox("Lorem ipsum dolor sit amet"),
@@ -453,6 +587,15 @@ object Boxes {
     tbox("incididunt ut labore et dolore magna "),
     tbox("aliqua. Ut enim ad minim veniam, ")
   )
+
+  def rawText = """|Lorem ipsum dolor sit amet
+                   |Anyconsectetur adipisicing elit, sed do eiusmod tempor
+                   |aliqua. Ut enim ad minim veniam, 
+                   |incididunt ut labore et dolore magna 
+                   |aliqua. Ut enim ad minim veniam
+                   |""".stripMargin
+                   
+                   
   def sampleText3 = vjoin()(
     tbox("Lorem ipsum dolor sit amet")
   )
@@ -464,114 +607,12 @@ object Boxes {
   def sampleBox2 = vjoin(center1)(hjoin(center1)(sampleText1, "|||->", sampleText2), sampleText3)
 
 
+  override def main(args: Array[String]) {
+    // println(sampleBox1)
+
+    // dara: Alignment => Int => String => Box =
+
+    val flowed = para(left)(20)(rawText)
+    println(flowed)
+  }
 }
-
-
-// These text layout/flow functions can be reintegrated another time.
-//   //------------------------------------------------------------------------------
-//   //  Paragraph flowing  ---------------------------------------------------------
-//   //------------------------------------------------------------------------------
-// 
-//   // @para algn w t@ is a box of width @w@, containing text @t@,
-//   //   aligned according to @algn@, flowed to fit within the given
-//   //   width.
-//   def para: Alignment => Int => String => Box = 
-//     a => n => t => 
-//       flow(n)(t) |> (ss => mkParaBox(a) (ss.length) (ss))
-// 
-// 
-//   // @columns w h t@ is a list of boxes, each of width @w@ and height
-//   //   at most @h@, containing text @t@ flowed into as many columns as
-//   //   necessary.
-//   def columns : (Alignment, Int, Int, String) => List[Box] = 
-//     (a, w, h, t) =>  flow(w)(t) ∘ (_.grouped(h).toList) ∘ (mkParaBox(a)(h))
-// 
-//   // @mkParaBox a n s@ makes a box of height @n@ with the text @s@
-//   //   aligned according to @a@.
-//   def mkParaBox : Alignment => Int => List[String] => Box = 
-//     a => n => alignVert(top)(n) compose vcat(a) compose (_.map(text))
-// 
-// 
-//   def words(s:String): List[String] = (s.split(" ") map (_.trim)).toList
-//   def unwords(ws:List[String]) = ws.mkString(" ")
-// 
-//   // Flow the given text into the given width.
-//   def flow : Int => String => List[String] = 
-//     n => t => {
-//       val wrds = words(t) ∘ mkWord
-//       val para = wrds.foldl (emptyPara(n)) { addWordP }
-//       para |> getLines |> (_.map(_.take(n)))
-//     }
-// 
-//   sealed trait ParaContent
-// 
-//   case class Para(paraWidth : Int, paraContent : ParaContent)
-//   val paraWidth: Lens[Para, Int] = lensu((obj, v) => obj copy (paraWidth = v), _.paraWidth)
-//   val paraContent: Lens[Para, ParaContent] = lensu((obj, v) => obj copy (paraContent = v), _.paraContent)
-// 
-//   case class Block(fullLines : List[Line], lastLine  : Line) extends ParaContent
-//   val fullLines: Lens[Block, List[Line]] = lensu((obj, v) => obj copy (fullLines = v), _.fullLines)
-//   val lastLine: Lens[Block, Line] = lensu((obj, v) => obj copy (lastLine = v), _.lastLine)
-// 
-//   def emptyPara(pw: Int) : Para = 
-//     Para(pw, (Block(Nil, (Line(0, Nil)))))
-// 
-//   def getLines : Para => List[String] = 
-//     p => {
-//       def process =  (l:List[Line]) => l.reverse ∘ Line.getWords ∘ (_.map(Word.getWord)) ∘ (_.reverse) ∘ unwords
-// 
-//       p match {
-//         case Para(_, (Block(ls, l))) => 
-//           if (l.len == 0) process(ls)
-//           else            process(l::ls)
-//       }
-//     }
-// 
-//   case class Line(len: Int, words: List[Word])
-//   object Line {
-//     val lenL: Lens[Line, Int] = lensu((obj, v) => obj copy (len = v), _.len)
-//     val wordsL: Lens[Line, List[Word]] = lensu((obj, v) => obj copy (words = v), _.words)
-//     val getLen = lenL.get(_)
-//     val getWords = wordsL.get(_)
-//   }
-// 
-//   // 
-//   def mkLine : List[Word] => Line = 
-//     ws => Line((ws ∘ Word.getLen).sum + ws.length - 1, ws)
-// 
-//   def startLine : Word => Line = 
-//     w => mkLine(w :: Nil)
-// 
-//   case class Word(len:Int, word:String)
-//   object Word {
-//     val lenL: Lens[Word, Int] = lensu((obj, v) => obj copy (len = v), _.len)
-//     val wordL: Lens[Word, String] = lensu((obj, v) => obj copy (word = v), _.word)
-//     val getLen = lenL.get(_)
-//     val getWord = wordL.get(_)
-//   }
-// 
-//   def mkWord : String => Word = 
-//     w => Word(w.length, w)
-// 
-//   def addWordP : Para => Word => Para = 
-//     p => w => {
-//       p match {
-//         case Para(pw, (Block(fl,l))) =>
-//           if (wordFits(pw,w,l))
-//             Para(pw, Block(fl, addWordL(w, l)))
-//           else
-//             Para(pw, Block((l::fl), startLine(w)))
-//       }
-//     }
-// 
-// 
-//   def addWordL : (Word, Line) => Line = 
-//     (w, l) => l match {
-//       case Line(len, ws) => Line((len + w.len + 1), (w::ws))
-//     }
-// 
-// 
-//   def wordFits : (Int, Word, Line) => Boolean = 
-//     (pw, w, l) => 
-//       l.len == 0 || l.len + w.len + 1 <= pw
-
