@@ -11,3 +11,9 @@ libraryDependencies := Seq(
 releaseSettings
 
 ReleaseKeys.releaseProcess := releaseConfig.releaseSteps
+
+//Iesl.scalaSettings(Iesl.DebugVars)
+
+publishTo := ieslConfig.publishToIesl(version.value)
+
+ieslConfig.creds
