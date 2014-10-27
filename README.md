@@ -1,5 +1,6 @@
-Boxes: Now, in Scala.
+Boxes: box-model text formatting library
 --------------------
+
 
 A port of the boxes library, written by Brent Yorgey under the attached copyright
         
@@ -31,16 +32,4 @@ A port of the boxes library, written by Brent Yorgey under the attached copyrigh
     OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
     
-
-The original boxes.hs file header is:
-
-    -- Module      :  Text.PrettyPrint.Boxes
-    -- Copyright   :  (c) Brent Yorgey 2009
-    -- License     :  BSD-style (see LICENSE)
-    -- Maintainer  :  byorgey@cis.upenn.edu
-    -- Stability   :  experimental
-    -- Portability :  portable
-    --
-    -- A pretty-printing library for laying out text in two dimensions,
-    -- using a simple box model.
 
