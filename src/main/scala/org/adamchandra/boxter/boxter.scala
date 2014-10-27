@@ -55,22 +55,25 @@ object Boxes {
     val content : Lens[Box, Content] = lensu((obj, v) => obj copy (content = v), _.content)
   }
 
-  // Convenient ability to use bare string literals as boxes.
-  // implicit def str2box(s:String): Box = tbox(s)
+  // pad box with an empty indentation box
   def indent(n:Int=4)(b:Box): Box = {
     emptyBox(1)(n) + b
   }
 
+  // Implicit to use bare string literals as boxes.
   implicit def stringToBox(s: String): Box = {
     linesToBox(scala.io.Source.fromString(s).getLines.toList)
   }
 
   def mstringToList(s: String): List[String] = 
     scala.io.Source.fromString(s).getLines.toList
-  
+
+
+  // Given a string, split it back into a box
   def unrenderString(s:String): Box = 
     s.split("\n").toList |> linesToBox
 
+  // Given a list of strings, create a box
   def linesToBox(lines: List[String]): Box = {
     vjoin()((lines map (tbox(_))):_*)
   }
@@ -191,9 +194,8 @@ object Boxes {
       Box(b.rows, c, SubBox(a, AlignFirst, b))
     }
 
-  // @alignVert algn n bx@ creates a box of height @n@, with the
-  //   contents and width of @bx@, vertically aligned according to
-  //   @algn@.
+  // alignVert creates a box of height n, with the contents and width of bx,
+  // vertically aligned according to algn
   def alignVert: Alignment => Int => Box => Box = 
     a => r => b => 
       Box(r, (b.cols), SubBox(AlignFirst, a, b))
@@ -290,21 +292,17 @@ object Boxes {
 
 
   // Render a box as a list of lines.
-  def renderBox(box: Box): List[String] = {
-    val out = box match {
-      case Box(r, c, Blank)             => resizeBox(r, c, List(""))
-      case Box(r, c, Text(t))           => resizeBox(r, c, List(t))
-      case Box(r, c, Col(bs))           => (bs >>= renderBoxWithCols(c)) |> (resizeBox(r, c, _))
-      case Box(r, c, SubBox(ha, va, b)) => resizeBoxAligned(r, c, ha, va)(renderBox(b))
-      case Box(r, c, Row(bs))           => {
-        bs ∘ renderBoxWithRows(r) |> merge |> (resizeBox(r, c, _))
-      }
-      case Box(r, c, AnnotatedBox(props, b))  => {
-        renderBox(b) 
-      }
+  def renderBox(box: Box): List[String] = box match {
+    case Box(r, c, Blank)             => resizeBox(r, c, List(""))
+    case Box(r, c, Text(t))           => resizeBox(r, c, List(t))
+    case Box(r, c, Col(bs))           => (bs >>= renderBoxWithCols(c)) |> (resizeBox(r, c, _))
+    case Box(r, c, SubBox(ha, va, b)) => resizeBoxAligned(r, c, ha, va)(renderBox(b))
+    case Box(r, c, Row(bs))           => {
+      bs ∘ renderBoxWithRows(r) |> merge |> (resizeBox(r, c, _))
     }
-
-    out
+    case Box(r, c, AnnotatedBox(props, b))  => {
+      renderBox(b)
+    }
   }
 
 
@@ -338,31 +336,6 @@ object Boxes {
   def printBox : Box => Unit = 
     box => println(render(box))
 
-
-  def boxesTest1() {
-    // creator: 1234-..
-    //   "John Smith et.al."
-    //   {_id: 1234-}
-    // name, value, link
-
-    val iconicCreator = vcat(right)(List(tbox("creator"),  tbox("de1cecf8-88d3-4580-a15c-6f207627860c"), tbox("AdamIESL Sau{_id: ...}")))
-    val iconicTarget = vcat(right)(List(tbox("target"),  tbox("de1cecf8-88d3-4580-a15c-6f207627860c"), tbox("David S{_id: ...}"), tbox("href=...")))
-    val sample = hsep(3)(top)(List(iconicTarget, iconicCreator))
-
-    // val sample = text("forward") +| text("f1fb306c-0962-4ba9-acb1-a2dc761e04e9") +| text("creator: de1cecf8-88d3-4580-a15c-6f207627860c") atop text("AdamIESL Sau{_id: ...}")
-
-    println("========")
-    printBox(iconicCreator)
-    println("========")
-    printBox(iconicTarget)
-    println("========")
-    printBox(sample)
-    println("========")
-  }
-
-
-  /// val hline = (c:String) => (n:Int) => (hjoin()( (takePadAlign(left, text(c), n)(List())):_* ))
-  // val vline = (c:String) => (n:Int) => (vjoin()( (takePadAlign(center1, text(c), n)(List())):_* ))
 
   def repeat(b:Box): Stream[Box] = {
     Stream.continually(b)
@@ -574,6 +547,28 @@ object App extends App {
   import Boxes._
 
 
+  def boxesTest1() {
+
+    val iconicCreator = vcat(right)(List(tbox("creator"),  tbox("de1cecf8-88d3-4580-a15c-6f207627860c"), tbox("AdamIESL Sau{_id: ...}")))
+    val iconicTarget = vcat(right)(List(tbox("target"),  tbox("de1cecf8-88d3-4580-a15c-6f207627860c"), tbox("David S{_id: ...}"), tbox("href=...")))
+    val sample = hsep(3)(top)(List(iconicTarget, iconicCreator))
+
+    // val sample = text("forward") +| text("f1fb306c-0962-4ba9-acb1-a2dc761e04e9") +| text("creator: de1cecf8-88d3-4580-a15c-6f207627860c") atop text("AdamIESL Sau{_id: ...}")
+
+    println("========")
+    printBox(iconicCreator)
+    println("========")
+    printBox(iconicTarget)
+    println("========")
+    printBox(sample)
+    println("========")
+  }
+
+
+  /// val hline = (c:String) => (n:Int) => (hjoin()( (takePadAlign(left, text(c), n)(List())):_* ))
+  // val vline = (c:String) => (n:Int) => (vjoin()( (takePadAlign(center1, text(c), n)(List())):_* ))
+  
+
   def sampleText1 = vjoin(center2)(
     tbox("Lorem ipsum dolor sit amet"),
     tbox("Anyconsectetur adipisicing elit, sed do eiusmod tempor"),
@@ -600,11 +595,11 @@ object App extends App {
     tbox("Lorem ipsum dolor sit amet")
   )
 
-  def sampleBox1 = hjoin(right)(sampleText1, "|||->", sampleText2)
+  def sampleBox1 = hjoin(right)(sampleText1, "  <-|||->  ", sampleText2)
 
-  def sampleBox3 = vjoin(right)(sampleText1, "|||->", sampleText2)
+  def sampleBox3 = vjoin(right)(sampleText1, "  <-|||-> ", sampleText2)
 
-  def sampleBox2 = vjoin(center1)(hjoin(center1)(sampleText1, "|||->", sampleText2), sampleText3)
+  def sampleBox2 = vjoin(center1)(hjoin(center1)(sampleText1, "  <-|||->  ", sampleText2), sampleText3)
 
 
   override def main(args: Array[String]) {
@@ -635,5 +630,6 @@ object App extends App {
     
     println("\n\n")
 
+    //boxesTest1()
   }
 }
