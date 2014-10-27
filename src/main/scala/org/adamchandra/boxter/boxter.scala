@@ -608,11 +608,32 @@ object App extends App {
 
 
   override def main(args: Array[String]) {
-    // println(sampleBox1)
-
-    // dara: Alignment => Int => String => Box =
 
     val flowed = para(left)(20)(rawText)
-    println(flowed)
+    println(borderInlineH(
+      "Inline-header label" atop flowed
+    ))
+
+    println("\n\n")
+
+    println(borderInlineTop(
+      "Inline-header top header" atop sampleBox1
+    ))
+
+    println("\n\n")
+
+    println(border(
+      "simple border" atop sampleBox2
+    ))
+
+
+    println("\n\n")
+
+    println(borderLeftRight("--> ", " <--")(
+      "Left/right border" atop sampleBox3
+    ))
+    
+    println("\n\n")
+
   }
 }
